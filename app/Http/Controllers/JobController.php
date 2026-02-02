@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
-use App\Models\Job;
-use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Models\Job;
 
 class JobController extends Controller
 {
+    use AuthorizesRequests;
     // @desc Show all job listings
     // @route GET /jobs
     public function index(): View
@@ -53,7 +54,7 @@ class JobController extends Controller
         ]);
 
         // Add the hardcoded user_id
-        $validatedData['user_id'] = 1;
+        $validatedData['user_id'] = auth()->user()->id;
 
         // Check for image
         if($request->hasFile('company_logo')) {
@@ -81,6 +82,9 @@ class JobController extends Controller
     // @route GET /jobs/{id}/edit
     public function edit(Job $job): View
     {
+        // check if user is authorized
+        $this->authorize('update', $job);
+
         return view('jobs.edit')->with('job', $job);
     }
 
@@ -88,6 +92,9 @@ class JobController extends Controller
     // @route PUT /jobs/{id}
     public function update(Request $request, Job $job): string
     {
+        // check if user is authorized
+        $this->authorize('update', $job);
+
          $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -130,6 +137,9 @@ class JobController extends Controller
     // @route DELETE /jobs/{id}
     public function destroy(Job $job): RedirectResponse
     {
+        // check if user is authorized
+        $this->authorize('delete', $job);
+
         // If logo, then delete it
         if($job->company_logo) {
             Storage::delete('public/logos' . basename($job->company_logo));
