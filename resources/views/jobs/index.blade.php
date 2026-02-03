@@ -6,5 +6,7 @@
         <p>No jobs available</p>
         @endforelse
     </div>
+    {{-- Pagination Links   --}}
+    {{$jobs->links()}}
 </x-layout>
 
