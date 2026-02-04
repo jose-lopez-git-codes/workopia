@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\JobApplied;
 use App\Models\Applicant;
 use App\Models\Job;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class ApplicantController extends Controller
 {
@@ -25,7 +27,7 @@ class ApplicantController extends Controller
         // Validate the incoming request data
         $validatedData = $request->validate([
             'full_name' => 'required|string|max:255',
-            'contact_number' => 'string|max:20',
+            'contact_phone' => 'string|max:20',
             'contact_email' => 'required|email',
             'message' => 'string',
             'location' => 'string|max:255',
@@ -43,6 +45,9 @@ class ApplicantController extends Controller
         $application->job_id = $job->id;
         $application->user_id = auth()->user()->id;
         $application->save();
+
+        // Send email to owner
+        Mail::to($job->user->email)->send(new JobApplied($application, $job));
 
         return redirect()->back()->with('success', 'Your application has been submitted.');
     }
